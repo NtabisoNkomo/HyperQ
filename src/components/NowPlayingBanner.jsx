@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNowPlaying, useIsHost, useQueue } from '../hooks/useFirebase';
 import { ref, set, remove } from 'firebase/database';
 import { db } from '../lib/firebase';
@@ -13,7 +13,17 @@ export default function NowPlayingBanner({ roomId }) {
   
   const [jukeboxStarted, setJukeboxStarted] = useState(false);
   const [player, setPlayer] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+
+  const isPlaying = nowPlaying?.isPlaying ?? true;
+
+  useEffect(() => {
+    if (!player || !nowPlaying) return;
+    if (isPlaying) {
+      player.playVideo();
+    } else {
+      player.pauseVideo();
+    }
+  }, [isPlaying, player, nowPlaying]);
 
   const handleSkip = async () => {
     // Log current song to history before skipping
@@ -32,7 +42,8 @@ export default function NowPlayingBanner({ roomId }) {
     // Set next song
     await set(ref(db, `rooms/${roomId}/nowPlaying`), {
       ...topSong,
-      startedAt: Date.now()
+      startedAt: Date.now(),
+      isPlaying: true
     });
 
     // Remove from queue
@@ -53,16 +64,16 @@ export default function NowPlayingBanner({ roomId }) {
         event.target.seekTo(elapsedSeconds, true);
       }
     }
-    event.target.playVideo();
+    if (isPlaying) {
+      event.target.playVideo();
+    } else {
+      event.target.pauseVideo();
+    }
   };
 
-  const togglePlayPause = () => {
-    if (!player) return;
-    if (isPlaying) {
-      player.pauseVideo();
-    } else {
-      player.playVideo();
-    }
+  const togglePlayPause = async () => {
+    if (!nowPlaying) return;
+    await set(ref(db, `rooms/${roomId}/nowPlaying/isPlaying`), !isPlaying);
   };
 
   return (
@@ -85,8 +96,6 @@ export default function NowPlayingBanner({ roomId }) {
             }}
             onReady={onPlayerReady}
             onEnd={onPlayerEnd}
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
           />
         </div>
       )}

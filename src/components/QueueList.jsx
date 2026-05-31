@@ -1,4 +1,5 @@
-import { useQueue, useIsHost, toggleVote } from '../hooks/useFirebase';
+import { Play } from 'lucide-react';
+import { useQueue, useIsHost, useNowPlaying, toggleVote } from '../hooks/useFirebase';
 import { useAuth } from '../context/FirebaseContext';
 import { ref, remove, set } from 'firebase/database';
 import { db } from '../lib/firebase';
@@ -24,6 +25,18 @@ export default function QueueList({ roomId }) {
   const handleVote = (songId) => {
     if (!currentUser) return;
     toggleVote(roomId, songId, currentUser.uid);
+  };
+
+  const handlePlaySong = async (song) => {
+    if (!isHost) return;
+    // Set selected song as now playing
+    await set(ref(db, `rooms/${roomId}/nowPlaying`), {
+      ...song,
+      startedAt: Date.now(),
+      isPlaying: true,
+    });
+    // Remove from queue
+    await remove(ref(db, `rooms/${roomId}/queue/${song.id}`));
   };
 
   const handleReaction = async (songId, reactionId) => {
@@ -64,6 +77,7 @@ export default function QueueList({ roomId }) {
               <motion.div
                 layout // Enables automatic animation when position changes
                 key={song.id}
+                onClick={() => isHost && handlePlaySong(song)}
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: 'hidden' }}
@@ -93,6 +107,17 @@ export default function QueueList({ roomId }) {
 
                   {/* Controls Area */}
                   <div className="flex items-center gap-4 shrink-0">
+                    {/* Play Button */}
+                    {isHost && (
+                      <button
+                        onClick={() => handlePlaySong(song)}
+                        className="w-10 h-10 rounded-xl flex items-center justify-center bg-brand-violet text-white hover:bg-brand-violet/90 transition-colors"
+                        title="Play song"
+                      >
+                        <Play className="w-5 h-5 fill-current" />
+                      </button>
+                    )}
+
                     {/* Vote Button */}
                     <button 
                       onClick={() => handleVote(song.id)}
