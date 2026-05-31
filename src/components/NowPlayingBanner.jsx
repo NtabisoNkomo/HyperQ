@@ -46,6 +46,12 @@ export default function NowPlayingBanner({ roomId }) {
 
   const onPlayerReady = (event) => {
     setPlayer(event.target);
+    if (nowPlaying?.startedAt) {
+      const elapsedSeconds = (Date.now() - nowPlaying.startedAt) / 1000;
+      if (elapsedSeconds > 0) {
+        event.target.seekTo(elapsedSeconds, true);
+      }
+    }
     event.target.playVideo();
   };
 
@@ -63,8 +69,8 @@ export default function NowPlayingBanner({ roomId }) {
       {/* Decorative Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[150%] bg-brand-violet/5 blur-[50px] pointer-events-none" />
       
-      {/* Invisible YouTube Player for Host */}
-      {isHost && jukeboxStarted && nowPlaying && (
+      {/* Invisible YouTube Player for All Users */}
+      {jukeboxStarted && nowPlaying && (
         <div className="hidden">
           <YouTube
             videoId={nowPlaying.videoId}
@@ -150,13 +156,13 @@ export default function NowPlayingBanner({ roomId }) {
         </AnimatePresence>
 
         <div className="shrink-0 flex items-center gap-2">
-          {isHost && !jukeboxStarted && (
+          {!jukeboxStarted && (
             <button 
               onClick={() => setJukeboxStarted(true)}
               className="flex items-center gap-2 px-4 py-3 bg-brand-pink hover:bg-brand-pink/80 text-white rounded-xl transition-colors shadow-[0_0_15px_rgba(236,72,153,0.5)]"
             >
               <PlayCircle className="w-5 h-5" />
-              <span className="font-bold text-sm hidden md:inline">Start Jukebox</span>
+              <span className="font-bold text-sm hidden md:inline">{isHost ? 'Start Jukebox' : 'Listen In'}</span>
             </button>
           )}
 
