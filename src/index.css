@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", sans-serif;
+  --font-display: "Syne", sans-serif;
+
+  --color-brand-bg: #0A0A0F;
+  --color-brand-surface: #16161F;
+  --color-brand-violet: #7C3AED;
+  --color-brand-pink: #EC4899;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-bg text-white font-sans antialiased min-h-screen selection:bg-brand-violet selection:text-white;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-brand-surface border border-white/10 shadow-2xl;
+  }
+  
+  .glow-effect {
+    box-shadow: 0 0 60px rgba(124, 58, 237, 0.25);
+  }
+  
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
