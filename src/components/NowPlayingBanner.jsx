@@ -16,18 +16,19 @@ export default function NowPlayingBanner({ roomId }) {
   const [isPlaying, setIsPlaying] = useState(false);
 
   const handleSkip = async () => {
+    // Log current song to history before skipping
+    if (nowPlaying) {
+      await set(ref(db, `rooms/${roomId}/history/${nowPlaying.videoId}`), true);
+    }
+
     if (queue.length === 0) {
-      alert("Queue is empty — add a song!");
+      // If there are no more songs, just stop playing
+      await remove(ref(db, `rooms/${roomId}/nowPlaying`));
       return;
     }
 
     const topSong = queue[0];
     
-    // Log current song to history before skipping (Replay Protection prep)
-    if (nowPlaying) {
-      await set(ref(db, `rooms/${roomId}/history/${nowPlaying.videoId}`), true);
-    }
-
     // Set next song
     await set(ref(db, `rooms/${roomId}/nowPlaying`), {
       ...topSong,
